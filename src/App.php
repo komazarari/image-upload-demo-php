@@ -140,8 +140,58 @@ function defineRoutes(\Slim\App $app): void
         return $controller->getStatus($request, $response, $args);
     });
 
-    // TODO: Add actual route handlers
-    // - POST /image-event → ImageEventController::handlePubSubEvent()
+    // Image event handler (from Pub/Sub)
+    // Processes validation, conversion, and storage of uploaded images
+    $app->post('/image-event', function (Request $request, Response $response) {
+        $storageService = new \ImageUploadDemo\Services\StorageService();
+        $validationService = new \ImageUploadDemo\Services\ImageValidationService();
+        $conversionService = new \ImageUploadDemo\Services\ImageConversionService();
+
+        // Create mock GcsService
+        $mockGcsService = new class extends \ImageUploadDemo\Services\GcsService {
+            public function generateSignedUrl(
+                string $bucket,
+                string $objectName,
+                int $expirySeconds = 3600,
+                string $method = 'PUT'
+            ): string {
+                return sprintf('https://storage.googleapis.com/%s/%s?signature=mock', $bucket, $objectName);
+            }
+
+            public function copyObject(
+                string $sourceBucket,
+                string $sourceObject,
+                string $destBucket,
+                string $destObject
+            ): bool {
+                return false;
+            }
+
+            public function downloadObject(
+                string $bucket,
+                string $objectName,
+                string $localPath
+            ): bool {
+                return false;
+            }
+
+            public function deleteObject(
+                string $bucket,
+                string $objectName
+            ): bool {
+                return false;
+            }
+        };
+
+        $controller = new \ImageUploadDemo\Controllers\ImageEventController(
+            $storageService,
+            $validationService,
+            $conversionService,
+            $mockGcsService
+        );
+
+        return $controller->handlePubSubEvent($request, $response);
+    });
 }
 
 // Run the application
