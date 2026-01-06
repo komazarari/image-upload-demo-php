@@ -1,0 +1,272 @@
+openapi: 3.0.0
+info:
+  title: GCS Image Upload API
+  version: 1.0.0
+  description: Image upload API using Google Cloud Storage signed URLs
+  contact:
+    name: GCS Image Upload Demo
+    url: https://github.com/komazarari/image-upload-demo-php
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+  - url: https://image-upload-demo.example.com
+    description: Production (example)
+
+paths:
+  /images/upload-request:
+    post:
+      summary: Request a signed URL for image upload
+      description: |
+        Client calls this endpoint to request a signed URL for uploading image to GCS.
+        Server returns:
+        - `guid`: Unique identifier for this upload (used to track status)
+        - `signedUrl`: Pre-signed URL for client to PUT image to
+        
+        Client then uses the signedUrl to upload image directly to GCS.
+      operationId: createUploadRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+                  description: Identifier of the user requesting upload
+                  example: user123
+                  minLength: 1
+                  maxLength: 255
+      responses:
+        "200":
+          description: Upload request created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - guid
+                  - signedUrl
+                  - expiresAt
+                properties:
+                  guid:
+                    type: string
+                    format: uuid
+                    description: Unique identifier for this upload; use to track status
+                    example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+                  signedUrl:
+                    type: string
+                    format: uri
+                    description: |
+                      Pre-signed URL for uploading image.
+                      Client must use PUT method to upload image to this URL.
+                      URL expires after 1 hour.
+                    example: https://storage.googleapis.com/image-upload-demo-upload/...
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: When the signed URL expires (ISO 8601, UTC)
+                    example: "2026-01-06T13:00:00Z"
+        "400":
+          description: Invalid request (missing or invalid userId)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error (failed to generate signed URL)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /image-event:
+    post:
+      summary: Webhook endpoint for Pub/Sub notifications
+      description: |
+        **Internal endpoint - called by Google Cloud Pub/Sub only**
+        
+        When image is uploaded to GCS bucket, Pub/Sub sends notification to this endpoint.
+        Server validates image, converts it (remove metadata), copies to public bucket,
+        and updates upload record status.
+        
+        Request is authenticated via OIDC token in Authorization header.
+      operationId: handleImageEvent
+      security:
+        - OidcToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: object
+                  required:
+                    - data
+                  properties:
+                    data:
+                      type: string
+                      format: byte
+                      description: Base64-encoded GCS object metadata JSON
+                      example: eyJuYW1lIjoiZmlsZS5qcGciLCJidWNrZXQiOiJ1cGxvYWQtYnVja2V0In0=
+                    messageId:
+                      type: string
+                      description: Unique message ID
+                      example: "123456789"
+                    publishTime:
+                      type: string
+                      format: date-time
+                      description: When message was published
+      responses:
+        "200":
+          description: Event processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - processing
+                      - completed
+                      - failed
+                    example: processing
+        "400":
+          description: Invalid Pub/Sub message format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized (invalid OIDC token)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error during image processing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /images/status:
+    post:
+      summary: Check upload status and get public URL
+      description: |
+        Client polls this endpoint to check if image has been processed.
+        
+        Status progression:
+        - `initialized`: Upload request created; client hasn't uploaded yet
+        - `processing`: Image uploaded to GCS; server validating
+        - `completed`: Validation passed; `publicUrl` contains link to processed image
+        - `failed`: Validation failed; no public URL (client must retry)
+        
+        After upload is `completed`, client can access image via `publicUrl`.
+      operationId: getImageStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - guid
+              properties:
+                userId:
+                  type: string
+                  description: User who requested upload
+                  example: user123
+                guid:
+                  type: string
+                  format: uuid
+                  description: Upload identifier returned by /images/upload-request
+                  example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+      responses:
+        "200":
+          description: Status retrieved successfully
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    description: Upload in progress or initial state
+                    required:
+                      - status
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - initialized
+                          - processing
+                  - type: object
+                    description: Upload completed
+                    required:
+                      - status
+                      - publicUrl
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - completed
+                      publicUrl:
+                        type: string
+                        format: uri
+                        description: Public URL to processed image
+                        example: https://storage.googleapis.com/image-upload-demo-public/f47ac10b-58cc-4372-a567-0e02b2c3d479.jpg
+                  - type: object
+                    description: Upload failed
+                    required:
+                      - status
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - failed
+        "404":
+          description: Upload not found (invalid guid)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type (e.g., "invalid_request", "not_found", "internal_error")
+          example: invalid_request
+        message:
+          type: string
+          description: Human-readable error message
+          example: Missing required field 'userId'
+
+  securitySchemes:
+    OidcToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        OIDC token issued by Google Cloud.
+        Automatically added by Pub/Sub; not used in public API endpoints.
