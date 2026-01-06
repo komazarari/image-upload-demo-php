@@ -132,9 +132,16 @@ function defineRoutes(\Slim\App $app): void
         return $controller->uploadRequest($request, $response);
     });
 
+    // Image status endpoint
+    // Returns the current status of an upload
+    $app->get('/images/{guid}/status', function (Request $request, Response $response, array $args) {
+        $storageService = new \ImageUploadDemo\Services\StorageService();
+        $controller = new \ImageUploadDemo\Controllers\ImageStatusController($storageService);
+        return $controller->getStatus($request, $response, $args);
+    });
+
     // TODO: Add actual route handlers
     // - POST /image-event → ImageEventController::handlePubSubEvent()
-    // - GET /images/status → ImageStatusController::getStatus()
 }
 
 // Run the application
