@@ -80,10 +80,61 @@ function defineRoutes(\Slim\App $app): void
         return $response->withHeader('Content-Type', 'application/json');
     });
 
+    // Image upload request endpoint
+    // Returns a GUID and signed URL for client to use when uploading image
+    $app->post('/images/upload-request', function (Request $request, Response $response) {
+        // Create minimal mock GcsService for now
+        $mockGcsService = new class extends \ImageUploadDemo\Services\GcsService {
+            public function generateSignedUrl(
+                string $bucket,
+                string $objectName,
+                int $expirySeconds = 3600,
+                string $method = 'PUT'
+            ): string {
+                // Mock implementation - returns placeholder URL
+                return sprintf(
+                    'https://storage.googleapis.com/upload/%s?signature=mock_token',
+                    urlencode($objectName)
+                );
+            }
+
+            public function copyObject(
+                string $sourceBucket,
+                string $sourceObject,
+                string $destBucket,
+                string $destObject
+            ): bool {
+                return false;
+            }
+
+            public function downloadObject(
+                string $bucket,
+                string $objectName,
+                string $localPath
+            ): bool {
+                return false;
+            }
+
+            public function deleteObject(
+                string $bucket,
+                string $objectName
+            ): bool {
+                return false;
+            }
+        };
+
+        $storageService = new \ImageUploadDemo\Services\StorageService();
+        $controller = new \ImageUploadDemo\Controllers\ImageUploadController(
+            $storageService,
+            $mockGcsService
+        );
+
+        return $controller->uploadRequest($request, $response);
+    });
+
     // TODO: Add actual route handlers
-    // - POST /images/upload-request → ImageUploadController::uploadRequest()
     // - POST /image-event → ImageEventController::handlePubSubEvent()
-    // - POST /images/status → ImageStatusController::getStatus()
+    // - GET /images/status → ImageStatusController::getStatus()
 }
 
 // Run the application
