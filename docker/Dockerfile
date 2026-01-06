@@ -18,7 +18,11 @@ RUN git config --global --add safe.directory /var/www/html
 
 # Install PHP extensions
 RUN pecl install imagick && docker-php-ext-enable imagick
-RUN docker-php-ext-install -j$(nproc) gd
+RUN docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg \
+    --with-webp && \
+    docker-php-ext-install -j$(nproc) gd
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
