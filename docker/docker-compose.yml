@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  php:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: image-upload-demo-php
+    ports:
+      - "${SERVER_PORT:-8000}:80"
+    volumes:
+      - ..:/var/www/html
+      - ../storage/uploads:/var/www/html/storage/uploads
+      - ../storage/logs:/var/www/html/storage/logs
+    environment:
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
+      - GCS_UPLOAD_BUCKET=${GCS_UPLOAD_BUCKET}
+      - GCS_PUBLIC_BUCKET=${GCS_PUBLIC_BUCKET}
+      - PUBSUB_TOPIC=${PUBSUB_TOPIC}
+      - PUBSUB_SUBSCRIPTION=${PUBSUB_SUBSCRIPTION}
+      - SERVER_HOST=${SERVER_HOST:-0.0.0.0}
+      - SERVER_PORT=${SERVER_PORT:-8000}
+      - APP_ENV=${APP_ENV:-development}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-5242880}
+      - MAX_IMAGE_WIDTH=${MAX_IMAGE_WIDTH:-4000}
+      - MAX_IMAGE_HEIGHT=${MAX_IMAGE_HEIGHT:-3000}
+      - ALLOWED_MIME_TYPES=${ALLOWED_MIME_TYPES}
+      - SIGNED_URL_EXPIRY=${SIGNED_URL_EXPIRY:-3600}
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

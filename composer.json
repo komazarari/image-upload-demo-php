@@ -1,0 +1,31 @@
+{
+  "name": "komazarari/image-upload-demo-php",
+  "description": "A secure, two-stage image upload system with Google Cloud Storage and Pub/Sub",
+  "type": "project",
+  "require": {
+    "php": "^8.0",
+    "slim/slim": "^4.11",
+    "slim/psr7": "^1.6",
+    "google/cloud-storage": "^1.27",
+    "google/cloud-pubsub": "^1.32",
+    "ext-imagick": "*",
+    "ramsey/uuid": "^4.7",
+    "psr/log": "^3.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5",
+    "phpstan/phpstan": "^1.8"
+  },
+  "autoload": {
+    "psr-4": {
+      "ImageUploadDemo\\": "src/",
+      "ImageUploadDemo\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit tests/",
+    "test:unit": "phpunit tests/Unit/",
+    "test:integration": "phpunit tests/Integration/",
+    "coverage": "phpunit --coverage-html coverage/ tests/"
+  }
+}
