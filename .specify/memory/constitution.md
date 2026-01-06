@@ -1,34 +1,30 @@
 <!-- 
 SYNC IMPACT REPORT
 ==================
-Constitution Version: 1.0.0 (Initial)
+Constitution Version: 1.1.0
 Date: 2026-01-06
 
-CHANGES MADE:
-- Created comprehensive constitution with 5 core principles
-- Added Security Requirements section
-- Added Development Workflow section
-- Added Governance section
+VERSION BUMP RATIONALE:
+- MINOR version bump (1.0.0 → 1.1.0): Added new development guideline for Docker-based PHP development
+- Non-breaking change; clarifies tooling requirement for existing principle compliance
 
-PRINCIPLES ADDED:
-- I. Human-Readable Code First
-- II. Security by Default (Non-Negotiable)
-- III. Test-Driven Development (TDD)
-- IV. Secure File Upload Handling
-- V. Simple, Focused Scope
+CHANGES MADE:
+- Added VI. Docker-First Development Environment principle
+- Updated Development Workflow section with Docker requirements
+- All existing principles and security requirements maintained
+
+NEW PRINCIPLE:
+- VI. Docker-First Development Environment
 
 TEMPLATES UPDATED:
-- ✅ README.md - Created comprehensive project README
-- ✅ docs/DEVELOPMENT.md - Created development guidance
-- ✅ docs/SECURITY.md - Created security implementation guide
+- ✅ README.md - Maintains comprehensive project README
+- ✅ docs/DEVELOPMENT.md - Maintains development guidance  
+- ✅ docs/SECURITY.md - Maintains security implementation guide
 
-FOLLOW-UP ITEMS:
-- Create .env.example file with required configuration
-- Create initial Composer configuration (composer.json)
-- Set up test framework (PHPUnit)
-- Create directory structure (src/, tests/, storage/)
-- Implement file upload endpoints
-- Implement security validation classes
+CLARIFICATIONS:
+- Host machine has no native PHP runtime; all PHP development uses Docker
+- Ensures consistent development environment across team members
+- Isolates project dependencies and prevents host system pollution
 -->
 
 # Image Upload Demo Constitution
@@ -50,6 +46,9 @@ File upload endpoints MUST validate: file type, size, MIME type verification, vi
 ### V. Simple, Focused Scope
 Demo application focuses on core image upload functionality. No unnecessary features or complexity. YAGNI principle strictly applied. Clear separation of concerns: routing, business logic, storage, security.
 
+### VI. Docker-First Development Environment
+All PHP development is conducted inside Docker containers. The host machine does not have a native PHP runtime environment. Developers MUST use Docker Compose to run all PHP-related tasks: development server, running tests, composer commands, database operations. This ensures a consistent, reproducible development environment and prevents dependency conflicts on the host machine.
+
 ## Security Requirements
 
 - **Input Validation**: All user input (filename, file content, request parameters) validated server-side
@@ -61,6 +60,12 @@ Demo application focuses on core image upload functionality. No unnecessary feat
 
 ## Development Workflow
 
+- **Docker-Based Development**: ALL PHP development occurs in Docker containers
+  - Start application: `cd docker && docker compose up -d`
+  - Run tests: `docker compose exec php ./vendor/bin/phpunit tests/Unit/`
+  - Run composer: `docker compose exec php composer <command>`
+  - Access logs: `docker compose logs php`
+  - Stop application: `cd docker && docker compose down`
 - **Code Review**: All changes reviewed for security and readability before merge
 - **Naming Conventions**: Clear, English function/variable names; no abbreviations unless standard (e.g., `$file` not `$f`)
 - **Comments**: Explain non-obvious security decisions; document assumptions
@@ -69,6 +74,6 @@ Demo application focuses on core image upload functionality. No unnecessary feat
 
 ## Governance
 
-Constitution supersedes all development practices. Amendments require documentation of rationale and migration plan. All PRs must verify compliance with security and readability principles. Use `.specify/memory/` for governance tracking and `.specify/templates/` for development templates. Complexity deviations require documented justification.
+Constitution supersedes all development practices. Amendments require documentation of rationale and migration plan. All PRs must verify compliance with security, readability, and Docker usage principles. Use `.specify/memory/` for governance tracking and `.specify/templates/` for development templates. Complexity deviations require documented justification.
 
-**Version**: 1.0.0 | **Ratified**: 2026-01-06 | **Last Amended**: 2026-01-06
+**Version**: 1.1.0 | **Ratified**: 2026-01-06 | **Last Amended**: 2026-01-06
