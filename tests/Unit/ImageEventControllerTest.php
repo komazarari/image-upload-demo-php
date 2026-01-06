@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace ImageUploadDemo\Tests\Unit;
 
 use ImageUploadDemo\Controllers\ImageEventController;
+use ImageUploadDemo\Enums\UploadStatus;
 use ImageUploadDemo\Models\UploadRecord;
 use ImageUploadDemo\Services\ImageConversionService;
 use ImageUploadDemo\Services\ImageValidationService;
@@ -138,8 +139,8 @@ class ImageEventControllerTest extends TestCase
         $this->assertNotNull($updated);
         // Status should be processing or completed depending on validation success
         $this->assertTrue(
-            in_array($updated->status, ['processing', 'completed', 'failed']),
-            "Status should be one of: processing, completed, failed. Got: {$updated->status}"
+            in_array($updated->status, [UploadStatus::Processing, UploadStatus::Completed, UploadStatus::Failed]),
+            "Status should be one of: processing, completed, failed. Got: {$updated->status->value}"
         );
     }
 

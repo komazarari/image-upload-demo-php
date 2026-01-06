@@ -10,22 +10,24 @@ declare(strict_types=1);
 
 namespace ImageUploadDemo\Models;
 
+use ImageUploadDemo\Enums\UploadStatus;
+
 class UploadRecord
 {
     /**
      * Unique identifier for this upload (UUID v4)
      */
-    public string $guid;
+    public readonly string $guid;
 
     /**
      * Requester identifier
      */
-    public string $userId;
+    public readonly string $userId;
 
     /**
-     * Current state of upload (initialized, processing, completed, failed)
+     * Current state of upload
      */
-    public string $status;
+    public UploadStatus $status;
 
     /**
      * Original filename provided by client (for logging, nullable)
@@ -40,7 +42,7 @@ class UploadRecord
     /**
      * Timestamp when upload request was initiated (ISO 8601, UTC)
      */
-    public string $createdAt;
+    public readonly string $createdAt;
 
     /**
      * Timestamp when image processing completed (null until completed)
@@ -55,7 +57,7 @@ class UploadRecord
     /**
      * Signed URL for client to upload image to (generated once, PUT only)
      */
-    public string $signedUrl;
+    public readonly string $signedUrl;
 
     /**
      * MIME type of uploaded image (e.g., image/jpeg, null until uploaded)
@@ -79,20 +81,20 @@ class UploadRecord
      *
      * @param string $guid Unique identifier
      * @param string $userId Requester identifier
-     * @param string $status Initial status (typically 'initialized')
+     * @param string|UploadStatus $status Initial status (typically 'initialized')
      * @param string $signedUrl Signed URL for upload
      * @param string|null $originalFilename Optional original filename
      */
     public function __construct(
         string $guid,
         string $userId,
-        string $status = 'initialized',
+        string|UploadStatus $status = 'initialized',
         string $signedUrl = '',
         ?string $originalFilename = null
     ) {
         $this->guid = $guid;
         $this->userId = $userId;
-        $this->status = $status;
+        $this->status = $status instanceof UploadStatus ? $status : UploadStatus::from($status);
         $this->signedUrl = $signedUrl;
         $this->originalFilename = $originalFilename;
         $this->publicUrl = null;
@@ -114,7 +116,7 @@ class UploadRecord
         return [
             'guid' => $this->guid,
             'userId' => $this->userId,
-            'status' => $this->status,
+            'status' => $this->status->value,
             'originalFilename' => $this->originalFilename,
             'publicUrl' => $this->publicUrl,
             'createdAt' => $this->createdAt,
@@ -144,7 +146,6 @@ class UploadRecord
         );
 
         $record->publicUrl = $data['publicUrl'] ?? null;
-        $record->createdAt = $data['createdAt'] ?? date('c');
         $record->processedAt = $data['processedAt'] ?? null;
         $record->errorMessage = $data['errorMessage'] ?? null;
         $record->contentType = $data['contentType'] ?? null;
@@ -159,7 +160,12 @@ class UploadRecord
      */
     public function markProcessing(): void
     {
-        $this->status = 'processing';
+        if (!$this->status->canTransitionToProcessing()) {
+            throw new \RuntimeException(
+                "Cannot transition from {$this->status->value} to processing"
+            );
+        }
+        $this->status = UploadStatus::Processing;
     }
 
     /**
@@ -167,7 +173,12 @@ class UploadRecord
      */
     public function markCompleted(string $publicUrl): void
     {
-        $this->status = 'completed';
+        if (!$this->status->canTransitionToCompleted()) {
+            throw new \RuntimeException(
+                "Cannot transition from {$this->status->value} to completed"
+            );
+        }
+        $this->status = UploadStatus::Completed;
         $this->publicUrl = $publicUrl;
         $this->processedAt = date('c');
     }
@@ -177,7 +188,12 @@ class UploadRecord
      */
     public function markFailed(string $errorMessage): void
     {
-        $this->status = 'failed';
+        if (!$this->status->canTransitionToFailed()) {
+            throw new \RuntimeException(
+                "Cannot transition from {$this->status->value} to failed"
+            );
+        }
+        $this->status = UploadStatus::Failed;
         $this->errorMessage = $errorMessage;
         $this->processedAt = date('c');
     }

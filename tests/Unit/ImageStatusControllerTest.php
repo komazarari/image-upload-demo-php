@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace ImageUploadDemo\Tests\Unit;
 
 use ImageUploadDemo\Controllers\ImageStatusController;
+use ImageUploadDemo\Enums\UploadStatus;
 use ImageUploadDemo\Models\UploadRecord;
 use ImageUploadDemo\Services\StorageService;
 use PHPUnit\Framework\TestCase;
@@ -80,6 +81,8 @@ class ImageStatusControllerTest extends TestCase
         // Create and store a completed record
         $guid = '550e8400-e29b-41d4-a716-446655440001';
         $record = new UploadRecord($guid, 'user-123', 'initialized', 'test.jpg');
+        // Use 'processing' state before completing to satisfy transition rules
+        $record->status = UploadStatus::Processing;
         $record->markCompleted('https://public-url.com/image.jpg');
         $record->contentType = 'image/jpeg';
         $record->fileSize = 1024;

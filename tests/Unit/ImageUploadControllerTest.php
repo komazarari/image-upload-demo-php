@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace ImageUploadDemo\Tests\Unit;
 
 use ImageUploadDemo\Controllers\ImageUploadController;
+use ImageUploadDemo\Enums\UploadStatus;
 use ImageUploadDemo\Services\GcsService;
 use ImageUploadDemo\Services\StorageService;
 use PHPUnit\Framework\TestCase;
@@ -126,7 +127,7 @@ class ImageUploadControllerTest extends TestCase
         // Load and verify record
         $record = $this->storageService->load($data['guid']);
         $this->assertNotNull($record);
-        $this->assertEquals('initialized', $record->status);
+        $this->assertEquals(UploadStatus::Initialized, $record->status);
     }
 
     /**
@@ -175,7 +176,7 @@ class ImageUploadControllerTest extends TestCase
         $this->assertNotNull($record);
 
         // Verify record fields
-        $this->assertEquals('initialized', $record->status);
+        $this->assertEquals(UploadStatus::Initialized, $record->status);
         $this->assertNotNull($record->createdAt);
         $this->assertNull($record->processedAt);
         $this->assertNull($record->errorMessage);

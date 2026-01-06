@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace ImageUploadDemo\Controllers;
 
+use ImageUploadDemo\Enums\UploadStatus;
+
 use ImageUploadDemo\Services\StorageService;
 use Psr\Http\Message\RequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -61,18 +63,18 @@ class ImageStatusController
             // Build response based on status
             $statusData = [
                 'guid' => $record->guid,
-                'status' => $record->status,
+                'status' => $record->status->value,
                 'createdAt' => $record->createdAt,
                 'processedAt' => $record->processedAt,
             ];
 
             // Add fields based on status
-            if ($record->status === 'completed') {
+            if ($record->status === UploadStatus::Completed) {
                 $statusData['publicUrl'] = $record->publicUrl;
                 $statusData['contentType'] = $record->contentType;
                 $statusData['fileSize'] = $record->fileSize;
                 $statusData['imageDimensions'] = $record->imageDimensions;
-            } elseif ($record->status === 'failed') {
+            } elseif ($record->status === UploadStatus::Failed) {
                 $statusData['error'] = $record->errorMessage;
             }
 

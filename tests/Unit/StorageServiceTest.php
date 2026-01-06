@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace ImageUploadDemo\Tests\Unit;
 
+use ImageUploadDemo\Enums\UploadStatus;
 use ImageUploadDemo\Models\UploadRecord;
 use ImageUploadDemo\Services\StorageService;
 use PHPUnit\Framework\TestCase;
@@ -57,7 +58,7 @@ class StorageServiceTest extends TestCase
         $this->assertNotNull($loaded);
         $this->assertEquals('test-guid-123', $loaded->guid);
         $this->assertEquals('user-456', $loaded->userId);
-        $this->assertEquals('initialized', $loaded->status);
+        $this->assertEquals(UploadStatus::Initialized, $loaded->status);
         $this->assertEquals('photo.jpg', $loaded->originalFilename);
     }
 
@@ -144,7 +145,7 @@ class StorageServiceTest extends TestCase
         // Verify state persisted
         $reloaded = $this->storageService->load('test-guid');
         $this->assertNotNull($reloaded);
-        $this->assertEquals('processing', $reloaded->status);
+        $this->assertEquals(UploadStatus::Processing, $reloaded->status);
 
         // Mark as completed
         $reloaded->markCompleted('https://public-url.com/image.jpg');
@@ -153,7 +154,7 @@ class StorageServiceTest extends TestCase
         // Verify completed state
         $final = $this->storageService->load('test-guid');
         $this->assertNotNull($final);
-        $this->assertEquals('completed', $final->status);
+        $this->assertEquals(UploadStatus::Completed, $final->status);
         $this->assertEquals('https://public-url.com/image.jpg', $final->publicUrl);
         $this->assertNotNull($final->processedAt);
     }

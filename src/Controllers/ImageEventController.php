@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace ImageUploadDemo\Controllers;
 
+use ImageUploadDemo\Enums\UploadStatus;
 use ImageUploadDemo\Services\ImageValidationService;
 use ImageUploadDemo\Services\ImageConversionService;
 use ImageUploadDemo\Services\StorageService;
