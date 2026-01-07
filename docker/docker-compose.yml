@@ -4,7 +4,7 @@ services:
   php:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: Dockerfile
       target: development
     container_name: image-upload-demo-php
     ports:
@@ -36,7 +36,7 @@ services:
   php-prod:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: Dockerfile
       target: production
     container_name: image-upload-demo-php-prod
     ports:
