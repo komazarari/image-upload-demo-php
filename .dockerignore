@@ -1,0 +1,40 @@
+.git
+.gitignore
+.github/
+.gitlab-ci.yml
+.circleci/
+.env.example
+.editorconfig
+.DS_Store
+
+# Documentation
+docs/
+README.md
+IMPLEMENTATION_TASKS.md
+LICENSE
+
+# Specification and planning
+specs/
+
+# Infrastructure
+terraform/
+
+# Client files
+clients/
+
+# Testing
+tests/
+phpunit.xml
+phpunit.xml.dist
+
+# Development
+docker/
+.vscode/
+.idea/
+
+# Storage volumes (will be mounted)
+storage/uploads
+storage/logs
+
+# Development dependencies
+node_modules/
