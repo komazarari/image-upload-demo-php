@@ -12,7 +12,8 @@ namespace ImageUploadDemo\Tests\Unit;
 use ImageUploadDemo\Controllers\ImageStatusController;
 use ImageUploadDemo\Enums\UploadStatus;
 use ImageUploadDemo\Models\UploadRecord;
-use ImageUploadDemo\Services\StorageService;
+use ImageUploadDemo\Services\StorageServiceInterface;
+use ImageUploadDemo\Implementations\JsonStorageService;
 use PHPUnit\Framework\TestCase;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Factory\ResponseFactory;
@@ -20,7 +21,7 @@ use Slim\Psr7\Factory\ResponseFactory;
 class ImageStatusControllerTest extends TestCase
 {
     private ImageStatusController $controller;
-    private StorageService $storageService;
+    private StorageServiceInterface $storageService;
     private string $tempDir;
 
     protected function setUp(): void
@@ -29,7 +30,7 @@ class ImageStatusControllerTest extends TestCase
         $this->tempDir = sys_get_temp_dir() . '/test_status_' . uniqid();
         mkdir($this->tempDir, 0755, true);
 
-        $this->storageService = new StorageService($this->tempDir);
+        $this->storageService = new JsonStorageService($this->tempDir);
         $this->controller = new ImageStatusController($this->storageService);
     }
 

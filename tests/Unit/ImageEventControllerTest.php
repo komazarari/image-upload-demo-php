@@ -14,7 +14,8 @@ use ImageUploadDemo\Enums\UploadStatus;
 use ImageUploadDemo\Models\UploadRecord;
 use ImageUploadDemo\Services\ImageConversionService;
 use ImageUploadDemo\Services\ImageValidationService;
-use ImageUploadDemo\Services\StorageService;
+use ImageUploadDemo\Services\StorageServiceInterface;
+use ImageUploadDemo\Implementations\JsonStorageService;
 use ImageUploadDemo\Services\GcsService;
 use PHPUnit\Framework\TestCase;
 use Slim\Psr7\Factory\ServerRequestFactory;
@@ -23,7 +24,7 @@ use Slim\Psr7\Factory\ResponseFactory;
 class ImageEventControllerTest extends TestCase
 {
     private ImageEventController $controller;
-    private StorageService $storageService;
+    private StorageServiceInterface $storageService;
     private ImageValidationService $validationService;
     private ImageConversionService $conversionService;
     private GcsService $gcsService;
@@ -35,7 +36,7 @@ class ImageEventControllerTest extends TestCase
         $this->tempDir = sys_get_temp_dir() . '/test_events_' . uniqid();
         mkdir($this->tempDir, 0755, true);
 
-        $this->storageService = new StorageService($this->tempDir);
+        $this->storageService = new JsonStorageService($this->tempDir);
         $this->validationService = new ImageValidationService();
         $this->conversionService = new ImageConversionService();
 

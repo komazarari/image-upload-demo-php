@@ -23,6 +23,7 @@ dist/
 # Testing
 coverage/
 .phpunit.cache/
+.phpunit.result.cache
 terraform/env/mydev/
 
 # Storage

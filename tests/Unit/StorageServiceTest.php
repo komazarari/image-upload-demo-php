@@ -9,19 +9,20 @@ namespace ImageUploadDemo\Tests\Unit;
 
 use ImageUploadDemo\Enums\UploadStatus;
 use ImageUploadDemo\Models\UploadRecord;
-use ImageUploadDemo\Services\StorageService;
+use ImageUploadDemo\Services\StorageServiceInterface;
+use ImageUploadDemo\Implementations\JsonStorageService;
 use PHPUnit\Framework\TestCase;
 
 class StorageServiceTest extends TestCase
 {
-    private StorageService $storageService;
+    private StorageServiceInterface $storageService;
     private string $testStorageDir;
 
     protected function setUp(): void
     {
         $this->testStorageDir = sys_get_temp_dir() . '/image-upload-test-' . uniqid();
         mkdir($this->testStorageDir, 0755, true);
-        $this->storageService = new StorageService($this->testStorageDir);
+        $this->storageService = new JsonStorageService($this->testStorageDir);
     }
 
     protected function tearDown(): void

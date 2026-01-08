@@ -12,7 +12,8 @@ namespace ImageUploadDemo\Tests\Unit;
 use ImageUploadDemo\Controllers\ImageUploadController;
 use ImageUploadDemo\Enums\UploadStatus;
 use ImageUploadDemo\Services\GcsService;
-use ImageUploadDemo\Services\StorageService;
+use ImageUploadDemo\Services\StorageServiceInterface;
+use ImageUploadDemo\Implementations\JsonStorageService;
 use PHPUnit\Framework\TestCase;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Factory\ResponseFactory;
@@ -20,7 +21,7 @@ use Slim\Psr7\Factory\ResponseFactory;
 class ImageUploadControllerTest extends TestCase
 {
     private ImageUploadController $controller;
-    private StorageService $storageService;
+    private StorageServiceInterface $storageService;
     private GcsService $gcsService;
     private string $tempDir;
 
@@ -31,7 +32,7 @@ class ImageUploadControllerTest extends TestCase
         mkdir($this->tempDir, 0755, true);
 
         // Create services with test directory
-        $this->storageService = new StorageService($this->tempDir);
+        $this->storageService = new JsonStorageService($this->tempDir);
 
         // Create mock GcsService
         $this->gcsService = new class extends GcsService {
@@ -69,8 +70,13 @@ class ImageUploadControllerTest extends TestCase
             }
         };
 
-        // Create controller
-        $this->controller = new ImageUploadController($this->storageService, $this->gcsService);
+        // Create controller with bucket name and expiry
+        $this->controller = new ImageUploadController(
+            $this->storageService,
+            $this->gcsService,
+            'test-upload-bucket',
+            300
+        );
     }
 
     protected function tearDown(): void

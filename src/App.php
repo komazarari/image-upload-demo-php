@@ -137,6 +137,9 @@ function initializeServices(array $env): array
         'gcs' => $gcsService,
         'validation' => $validationService,
         'conversion' => $conversionService,
+        'uploadBucket' => $env['GCS_UPLOAD_BUCKET'] ?? $env['UPLOAD_BUCKET'] ?? 'uploads',
+        'publicBucket' => $env['GCS_PUBLIC_BUCKET'] ?? $env['PUBLIC_BUCKET'] ?? 'public',
+        'signedUrlExpiry' => (int) ($env['SIGNED_URL_EXPIRY'] ?? 300),
     ];
 }
 
@@ -179,7 +182,9 @@ function defineRoutes(\Slim\App $app, array $services): void
     $app->post('/images/upload-request', function (Request $request, Response $response) use ($services) {
         $controller = new \ImageUploadDemo\Controllers\ImageUploadController(
             $services['storage'],
-            $services['gcs']
+            $services['gcs'],
+            $services['uploadBucket'],
+            $services['signedUrlExpiry']
         );
 
         return $controller->uploadRequest($request, $response);
