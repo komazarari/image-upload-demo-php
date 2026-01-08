@@ -23,6 +23,7 @@ dist/
 # Testing
 coverage/
 .phpunit.cache/
+terraform/env/mydev/
 
 # Storage
 storage/uploads/*.json
@@ -37,3 +38,6 @@ storage/logs/*.log
 .DS_Store
 Thumbs.db
 *.log
+
+# Terraform
+.terraform/*

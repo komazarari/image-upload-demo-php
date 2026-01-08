@@ -1,20 +1,19 @@
 <?php
 /**
- * Storage Service
+ * JSON File Storage Implementation
  *
- * Persists UploadRecord instances to local JSON files for demo purposes.
- * In production, this would be replaced with Firestore or another database.
- *
- * @deprecated Use JsonStorageService or FirestoreStorageService instead
+ * Persists UploadRecord instances to local JSON files.
+ * Suitable for development and demo purposes.
  */
 
 declare(strict_types=1);
 
-namespace ImageUploadDemo\Services;
+namespace ImageUploadDemo\Implementations;
 
 use ImageUploadDemo\Models\UploadRecord;
+use ImageUploadDemo\Services\StorageServiceInterface;
 
-class StorageService extends StorageServiceInterface
+class JsonStorageService extends StorageServiceInterface
 {
     /**
      * Base directory for storing upload records
