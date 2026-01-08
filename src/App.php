@@ -17,7 +17,10 @@ use Slim\Middleware\ErrorMiddleware;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-// Load environment variables from .env file
+// Load environment variables from .env file (for local development)
+// or use system environment variables (for Cloud Run, etc.)
+$env = [];
+
 if (file_exists(__DIR__ . '/../.env')) {
     $lines = file(__DIR__ . '/../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
@@ -31,8 +34,25 @@ if (file_exists(__DIR__ . '/../.env')) {
             $env[trim($key)] = trim($value);
         }
     }
-} else {
-    $env = [];
+}
+
+// Merge with system environment variables (Cloud Run sets these)
+// System environment variables take precedence over .env file
+foreach ($_ENV as $key => $value) {
+    $env[$key] = $value;
+}
+
+// Also check getenv() for variables set at runtime
+$envKeys = [
+    'APP_ENV', 'STORAGE_BACKEND', 'STORAGE_DIR', 'USE_REAL_GCS',
+    'GCP_PROJECT_ID', 'GCP_KEY_FILE', 'GCS_UPLOAD_BUCKET', 'GCS_PUBLIC_BUCKET',
+    'SIGNED_URL_EXPIRY', 'FIRESTORE_COLLECTION'
+];
+foreach ($envKeys as $key) {
+    $value = getenv($key);
+    if ($value !== false) {
+        $env[$key] = $value;
+    }
 }
 
 // Initialize services based on environment configuration
