@@ -29,3 +29,13 @@ variable "storage_class" {
   type        = string
   default     = "STANDARD"
 }
+
+variable "pubsub_topic_id" {
+  description = "Full resource path of Pub/Sub topic for upload notifications (e.g., projects/PROJECT_ID/topics/TOPIC_NAME)"
+  type        = string
+}
+
+variable "pubsub_topic_name" {
+  description = "Name of the Pub/Sub topic for access control"
+  type        = string
+}

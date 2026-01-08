@@ -29,6 +29,8 @@ module "gcs" {
   upload_bucket_name  = var.upload_bucket_name
   public_bucket_name  = var.public_bucket_name
   storage_class       = var.gcs_storage_class
+  pubsub_topic_id     = module.pubsub.topic_path
+  pubsub_topic_name   = var.topic_name
 }
 
 # Pub/Sub Topic and Subscription with production settings
