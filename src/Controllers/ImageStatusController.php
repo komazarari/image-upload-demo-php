@@ -12,8 +12,7 @@ declare(strict_types=1);
 namespace ImageUploadDemo\Controllers;
 
 use ImageUploadDemo\Enums\UploadStatus;
-
-use ImageUploadDemo\Services\StorageService;
+use ImageUploadDemo\Services\StorageServiceInterface;
 use Psr\Http\Message\RequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 
@@ -22,10 +21,10 @@ class ImageStatusController
     /**
      * Constructor
      *
-     * @param StorageService $storageService Service for retrieving upload records
+     * @param StorageServiceInterface $storageService Service for retrieving upload records
      */
     public function __construct(
-        private StorageService $storageService,
+        private StorageServiceInterface $storageService,
     ) {
     }
 

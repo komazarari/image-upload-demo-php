@@ -13,7 +13,7 @@ namespace ImageUploadDemo\Controllers;
 
 use ImageUploadDemo\Models\UploadRecord;
 use ImageUploadDemo\Services\GcsService;
-use ImageUploadDemo\Services\StorageService;
+use ImageUploadDemo\Services\StorageServiceInterface;
 use Psr\Http\Message\RequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Ramsey\Uuid\Uuid;
@@ -23,11 +23,11 @@ class ImageUploadController
     /**
      * Constructor
      *
-     * @param StorageService $storageService Service for persisting upload records
+     * @param StorageServiceInterface $storageService Service for persisting upload records
      * @param GcsService $gcsService Service for generating signed URLs
      */
     public function __construct(
-        private StorageService $storageService,
+        private StorageServiceInterface $storageService,
         private GcsService $gcsService,
     ) {
     }

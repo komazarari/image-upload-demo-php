@@ -14,7 +14,7 @@ namespace ImageUploadDemo\Controllers;
 use ImageUploadDemo\Enums\UploadStatus;
 use ImageUploadDemo\Services\ImageValidationService;
 use ImageUploadDemo\Services\ImageConversionService;
-use ImageUploadDemo\Services\StorageService;
+use ImageUploadDemo\Services\StorageServiceInterface;
 use ImageUploadDemo\Services\GcsService;
 use Psr\Http\Message\RequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -24,13 +24,13 @@ class ImageEventController
     /**
      * Constructor
      *
-     * @param StorageService $storageService Service for persisting upload records
+     * @param StorageServiceInterface $storageService Service for persisting upload records
      * @param ImageValidationService $validationService Service for validating images
      * @param ImageConversionService $conversionService Service for converting images
      * @param GcsService $gcsService Service for GCS operations
      */
     public function __construct(
-        private StorageService $storageService,
+        private StorageServiceInterface $storageService,
         private ImageValidationService $validationService,
         private ImageConversionService $conversionService,
         private GcsService $gcsService,
