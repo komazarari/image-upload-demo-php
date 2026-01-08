@@ -106,6 +106,7 @@ class ImageUploadController
 
             // Return JSON response
             $responseData = [
+                'status' => 'success',
                 'guid' => $guid,
                 'signedUrl' => $signedUrl,
                 'expiresAt' => $expiresAt,
