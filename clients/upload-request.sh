@@ -93,7 +93,7 @@ if [ "$STATUS" != "success" ]; then
     echo "Response: $UPLOAD_RESPONSE"
     exit 1
 fi
-
+set -x
 # Extract upload credentials
 GUID=$(echo "$UPLOAD_RESPONSE" | grep -o '"guid":"[^"]*"' | head -1 | cut -d'"' -f4)
 SIGNED_URL=$(echo "$UPLOAD_RESPONSE" | grep -o '"signedUrl":"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/\\\//\//g')

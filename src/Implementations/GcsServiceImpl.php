@@ -49,6 +49,7 @@ class GcsServiceImpl extends GcsService
      * @param string $objectName Object name in bucket
      * @param int $expirySeconds Expiration time in seconds
      * @param string $method HTTP method (PUT, GET, etc.)
+     * @param string|null $contentType Content type for the upload (required for PUT)
      * @return string Signed URL
      * @throws \Exception If URL generation fails
      */
@@ -56,18 +57,25 @@ class GcsServiceImpl extends GcsService
         string $bucket,
         string $objectName,
         int $expirySeconds = 3600,
-        string $method = 'PUT'
+        string $method = 'PUT',
+        ?string $contentType = null
     ): string {
         try {
             $bucketInstance = $this->client->bucket($bucket);
             $object = $bucketInstance->object($objectName);
 
+            $options = [
+                'method' => $method,
+            ];
+
+            // Add content type if provided (required for PUT requests)
+            if ($contentType !== null) {
+                $options['contentType'] = $contentType;
+            }
+
             $signedUrl = $object->signedUrl(
                 new \DateTime(sprintf('+%d seconds', $expirySeconds)),
-                [
-                    'method' => $method,
-                    'contentType' => 'application/octet-stream',
-                ]
+                $options
             );
 
             return $signedUrl;

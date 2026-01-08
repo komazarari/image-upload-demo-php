@@ -19,6 +19,7 @@ abstract class GcsService
      * @param string $objectName Object name in bucket
      * @param int $expirySeconds Expiration time in seconds
      * @param string $method HTTP method (PUT, GET, etc.)
+     * @param string|null $contentType Content type for the upload (required for PUT)
      * @return string Signed URL
      * @throws \Exception If URL generation fails
      */
@@ -26,7 +27,8 @@ abstract class GcsService
         string $bucket,
         string $objectName,
         int $expirySeconds = 3600,
-        string $method = 'PUT'
+        string $method = 'PUT',
+        ?string $contentType = null
     ): string;
 
     /**

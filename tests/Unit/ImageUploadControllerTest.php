@@ -40,7 +40,8 @@ class ImageUploadControllerTest extends TestCase
                 string $bucket,
                 string $objectName,
                 int $expirySeconds = 3600,
-                string $method = 'PUT'
+                string $method = 'PUT',
+                ?string $contentType = null
             ): string {
                 return sprintf('https://storage.googleapis.com/test/%s?signature=test', $objectName);
             }

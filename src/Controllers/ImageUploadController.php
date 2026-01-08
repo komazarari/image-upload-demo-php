@@ -90,7 +90,8 @@ class ImageUploadController
                 $this->uploadBucket,
                 $objectName,
                 $this->signedUrlExpiry,
-                'PUT'
+                'PUT',
+                $contentType
             );
 
             $expiresAt = time() + $this->signedUrlExpiry;
