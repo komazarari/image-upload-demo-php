@@ -16,6 +16,16 @@ resource "google_storage_bucket" "upload_bucket" {
     prevent_destroy = false
   }
 
+  # Delete objects older than 7 days
+  lifecycle_rule {
+    action {
+      type = "Delete"
+    }
+    condition {
+      age = 7
+    }
+  }
+
   labels = {
     environment = var.environment
     purpose     = "uploads"
@@ -49,14 +59,4 @@ resource "google_storage_bucket_iam_member" "public_bucket_reader" {
 }
 
 # Upload bucket lifecycle policy - delete old files after 7 days
-resource "google_storage_bucket_lifecycle_rule" "upload_cleanup" {
-  bucket = google_storage_bucket.upload_bucket.name
-
-  action {
-    type = "Delete"
-  }
-
-  condition {
-    age = 7
-  }
-}
+# Lifecycle rule moved into the upload_bucket resource above
