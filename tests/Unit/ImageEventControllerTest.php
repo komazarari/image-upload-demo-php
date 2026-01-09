@@ -66,6 +66,13 @@ class ImageEventControllerTest extends TestCase
                 string $objectName,
                 string $localPath
             ): bool {
+                // Write a 1x1 PNG to simulate download success
+                $pngBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/xcAAusB9Y4nZJcAAAAASUVORK5CYII=';
+                $dir = dirname($localPath);
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+                file_put_contents($localPath, base64_decode($pngBase64));
                 return true;
             }
 

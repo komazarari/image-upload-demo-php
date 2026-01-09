@@ -28,7 +28,7 @@ else
     SERVER_URL="${2:-$SERVER_URL}"
 fi
 
-API_ENDPOINT="/images/status"
+API_ENDPOINT="/images"
 
 # Color codes for output
 RED='\033[0;31m'
@@ -67,9 +67,7 @@ echo ""
 
 # Function to get status once
 get_status() {
-    curl -s -X POST "${SERVER_URL}${API_ENDPOINT}" \
-      -H "Content-Type: application/json" \
-      -d "{\"guid\": \"$GUID\"}"
+    curl -s -X GET "${SERVER_URL}${API_ENDPOINT}/${GUID}/status"
 }
 
 # Function to display status

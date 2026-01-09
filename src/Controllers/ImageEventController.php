@@ -94,15 +94,29 @@ class ImageEventController
                 return $this->successResponse($response, 'Record not found');
             }
 
+            // Download object to a temporary path for validation/conversion
+            $tempPath = sys_get_temp_dir() . '/' . $objectName;
+            $tempDir = dirname($tempPath);
+            if (!is_dir($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+
+            if (!$this->gcsService->downloadObject($bucket, $objectName, $tempPath)) {
+                $record->markFailed('Failed to download object from GCS');
+                $this->storageService->save($record);
+                error_log(sprintf('Failed to download object %s/%s', $bucket, $objectName));
+                return $this->successResponse($response, 'Download failed');
+            }
+
             // Mark as processing
             $record->markProcessing();
             $this->storageService->save($record);
 
-            // Validate image (in production, would download from GCS first)
-            $validation = $this->validationService->validate(
-                $objectName, // Local path (simulated)
-                'image/jpeg' // TODO: detect from metadata
-            );
+            // Determine content type
+            $contentType = $messageData['contentType'] ?? $this->detectMimeType($tempPath) ?? 'application/octet-stream';
+
+            // Validate image
+            $validation = $this->validationService->validate($tempPath, $contentType);
 
             if (!$validation->isValid) {
                 // Mark as failed
@@ -113,10 +127,11 @@ class ImageEventController
             }
 
             // Convert image (strip EXIF, re-encode)
+            $convertedPath = $tempPath . '.converted';
             $conversionResult = $this->conversionService->convert(
-                $objectName,
-                $objectName . '.converted',
-                'image/jpeg'
+                $tempPath,
+                $convertedPath,
+                $validation->mimeType
             );
 
             if (!$conversionResult->isValid) {
@@ -137,11 +152,22 @@ class ImageEventController
 
             // Mark as completed
             $record->markCompleted($publicUrl);
-            $record->contentType = 'image/jpeg'; // TODO: detect actual type
-            $record->fileSize = 1024; // TODO: get actual size
-            $record->imageDimensions = ['width' => 1920, 'height' => 1080]; // TODO: detect actual dimensions
+            $record->contentType = $validation->mimeType;
+            $record->fileSize = $validation->fileSize;
+            $record->imageDimensions = [
+                'width' => $validation->width,
+                'height' => $validation->height,
+            ];
 
             $this->storageService->save($record);
+
+            // Clean up temp files
+            if (file_exists($tempPath)) {
+                @unlink($tempPath);
+            }
+            if (isset($convertedPath) && file_exists($convertedPath)) {
+                @unlink($convertedPath);
+            }
 
             error_log(sprintf('Image processing completed for GUID %s: %s', $guid, $publicUrl));
 
@@ -152,6 +178,19 @@ class ImageEventController
             error_log('Error processing image event: ' . $e->getMessage());
             return $this->successResponse($response, 'Processing error');
         }
+    }
+
+    /**
+     * Detect MIME type using finfo
+     */
+    private function detectMimeType(string $path): ?string
+    {
+        if (!file_exists($path)) {
+            return null;
+        }
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($path);
+        return $mime !== false ? $mime : null;
     }
 
     /**
