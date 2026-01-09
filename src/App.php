@@ -225,7 +225,8 @@ function defineRoutes(\Slim\App $app, array $services): void
             $services['storage'],
             $services['validation'],
             $services['conversion'],
-            $services['gcs']
+            $services['gcs'],
+            $services['publicBucket']
         );
 
         return $controller->handlePubSubEvent($request, $response);

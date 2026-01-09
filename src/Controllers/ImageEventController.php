@@ -34,6 +34,7 @@ class ImageEventController
         private ImageValidationService $validationService,
         private ImageConversionService $conversionService,
         private GcsService $gcsService,
+        private string $publicBucket,
     ) {
     }
 
@@ -147,8 +148,8 @@ class ImageEventController
             // 3. Generate signed URL (or public URL if public bucket)
             // 4. Update record with public URL
 
-            // For now, mock the public URL
-            $publicUrl = sprintf('https://storage.googleapis.com/public/%s', $objectName);
+            // For now, mock the public URL pointing to configured public bucket
+            $publicUrl = sprintf('https://storage.googleapis.com/%s/%s', $this->publicBucket, $objectName);
 
             // Mark as completed
             $record->markCompleted($publicUrl);

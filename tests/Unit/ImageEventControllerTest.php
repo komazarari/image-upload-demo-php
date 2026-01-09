@@ -88,7 +88,8 @@ class ImageEventControllerTest extends TestCase
             $this->storageService,
             $this->validationService,
             $this->conversionService,
-            $this->gcsService
+            $this->gcsService,
+            'public-bucket'
         );
     }
 
