@@ -2,7 +2,49 @@
 
 A **human-readable, security-first** demonstration of image file upload functionality in PHP.
 
-## Project Philosophy
+## Sequence Overview
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant App as PHP App<br/>(Cloud Run)
+    participant Storage as Storage Service<br/>(JSON/Firestore)
+    participant UploadBucket as GCS Upload Bucket
+    participant PubSub as Cloud Pub/Sub
+    participant PublicBucket as GCS Public Bucket
+
+    Note over Client,PublicBucket: 1. Upload Request Phase
+    Client->>App: POST /images/upload-request<br/>{userId, mimeType}
+    App->>Storage: Save UploadRecord<br/>(status: initialized)
+    App->>App: Generate signed URL<br/>(V4, with contentType)
+    App->>Client: 200 OK<br/>{guid, signedUrl, expiresAt}
+    
+    Note over Client,PublicBucket: 2. Image Upload Phase
+    Client->>UploadBucket: PUT {signedUrl}<br/>(binary image data)
+    UploadBucket->>Client: 200 OK
+    UploadBucket->>PubSub: Publish OBJECT_FINALIZE event<br/>{bucket, name}
+    
+    Note over Client,PublicBucket: 3. Image Processing Phase
+    PubSub->>App: POST /image-event<br/>(Pub/Sub push)
+    App->>Storage: Update status: processing
+    App->>UploadBucket: Download image to /tmp
+    App->>App: Validate image<br/>(MIME, size, dimensions)
+    App->>App: Convert image<br/>(strip EXIF, re-encode)
+    App->>PublicBucket: Copy converted image
+    App->>UploadBucket: Delete original image
+    App->>Storage: Update status: completed<br/>+ publicUrl, metadata
+    App->>PubSub: 200 OK (ACK)
+    
+    Note over Client,PublicBucket: 4. Status Check Phase
+    Client->>App: GET /images/{guid}/status
+    App->>Storage: Load UploadRecord
+    Storage->>App: Return record
+    App->>Client: 200 OK<br/>{status, publicUrl, metadata}
+    
+    Note over Client,PublicBucket: 5. Image Access Phase
+    Client->>PublicBucket: GET {publicUrl}
+    PublicBucket->>Client: 200 OK<br/>(image/jpeg)
+```
 
 This demo prioritizes:
 - **Code Clarity**: Every line is understandable; complex logic is documented
