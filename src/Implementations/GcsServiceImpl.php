@@ -80,6 +80,15 @@ class GcsServiceImpl extends GcsService
                 $options
             );
 
+            // Debug logging
+            error_log(sprintf(
+                'Generated signed URL - Bucket: %s, Object: %s, Method: %s, ContentType: %s',
+                $bucket,
+                $objectName,
+                $method,
+                $contentType ?? 'null'
+            ));
+
             return $signedUrl;
         } catch (\Exception $e) {
             error_log(sprintf(
