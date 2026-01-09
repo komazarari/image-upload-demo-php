@@ -97,7 +97,7 @@ set -x
 # Extract upload credentials
 GUID=$(echo "$UPLOAD_RESPONSE" | grep -o '"guid":"[^"]*"' | head -1 | cut -d'"' -f4)
 SIGNED_URL=$(echo "$UPLOAD_RESPONSE" | grep -o '"signedUrl":"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/\\\//\//g')
-EXPIRES_AT=$(echo "$UPLOAD_RESPONSE" | grep -o '"expiresAt":"[^"]*"' | head -1 | cut -d'"' -f4)
+EXPIRES_AT=$(echo "$UPLOAD_RESPONSE" | grep -o '"expiresAt":[0-9]*' | head -1 | cut -d':' -f2)
 
 if [ -z "$GUID" ] || [ -z "$SIGNED_URL" ]; then
     echo -e "${RED}✗ Error: Invalid response from server${NC}"
@@ -112,14 +112,22 @@ echo ""
 
 # Step 2: Upload image using signed URL
 echo -e "${YELLOW}Step 2: Uploading image to GCS...${NC}"
+echo "Debug: Content-Type being sent: $MIME_TYPE"
+echo "Debug: File size: $FILE_SIZE bytes"
+echo ""
 
-UPLOAD_STATUS=$(curl -s -w "%{http_code}" -o /dev/null -X PUT \
+UPLOAD_RESPONSE_FULL=$(curl -v -X PUT \
   --data-binary @"$IMAGE_PATH" \
   -H "Content-Type: $MIME_TYPE" \
-  "$SIGNED_URL")
+  "$SIGNED_URL" 2>&1)
+
+UPLOAD_STATUS=$(echo "$UPLOAD_RESPONSE_FULL" | grep "< HTTP" | tail -1 | awk '{print $3}')
 
 if [ "$UPLOAD_STATUS" != "200" ]; then
     echo -e "${RED}✗ Error: Upload failed with HTTP status $UPLOAD_STATUS${NC}"
+    echo ""
+    echo "Full response:"
+    echo "$UPLOAD_RESPONSE_FULL"
     exit 1
 fi
 

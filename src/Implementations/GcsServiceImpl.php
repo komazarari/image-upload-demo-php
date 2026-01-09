@@ -66,9 +66,11 @@ class GcsServiceImpl extends GcsService
 
             $options = [
                 'method' => $method,
+                'version' => 'v4',  // Use V4 signing for better security
             ];
 
             // Add content type if provided (required for PUT requests)
+            // This will be included in the signature calculation
             if ($contentType !== null) {
                 $options['contentType'] = $contentType;
             }
