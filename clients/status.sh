@@ -75,7 +75,7 @@ display_status() {
     local response="$1"
     local status=$(echo "$response" | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
     local current_status=$(echo "$response" | grep -o '"status":"[^"]*"' | tail -1 | cut -d'"' -f4)
-    local public_url=$(echo "$response" | grep -o '"publicUrl":"[^"]*"' | cut -d'"' -f4)
+    local public_url=$(echo "$response" | grep -o '"publicUrl":"[^"]*"' | cut -d'"' -f4 | sed 's/\\\//\//g')
     local created_at=$(echo "$response" | grep -o '"createdAt":"[^"]*"' | cut -d'"' -f4)
     local processed_at=$(echo "$response" | grep -o '"processedAt":"[^"]*"' | cut -d'"' -f4)
 
