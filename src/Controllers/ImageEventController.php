@@ -28,12 +28,15 @@ class ImageEventController
      * @param ImageValidationService $validationService Service for validating images
      * @param ImageConversionService $conversionService Service for converting images
      * @param GcsService $gcsService Service for GCS operations
+     * @param string $uploadBucket GCS upload bucket name
+     * @param string $publicBucket GCS public bucket name
      */
     public function __construct(
         private StorageServiceInterface $storageService,
         private ImageValidationService $validationService,
         private ImageConversionService $conversionService,
         private GcsService $gcsService,
+        private string $uploadBucket,
         private string $publicBucket,
     ) {
     }
@@ -142,13 +145,26 @@ class ImageEventController
                 return $this->successResponse($response, 'Conversion failed');
             }
 
-            // In production:
-            // 1. Copy converted image to public bucket
-            // 2. Delete original from upload bucket
-            // 3. Generate signed URL (or public URL if public bucket)
-            // 4. Update record with public URL
+            // Copy converted image to public bucket
+            if (!$this->gcsService->copyObject(
+                $this->uploadBucket,
+                $objectName,
+                $this->publicBucket,
+                $objectName
+            )) {
+                $record->markFailed('Failed to copy image to public bucket');
+                $this->storageService->save($record);
+                error_log(sprintf('Failed to copy %s to public bucket', $objectName));
+                return $this->successResponse($response, 'Copy to public failed');
+            }
 
-            // For now, mock the public URL pointing to configured public bucket
+            // Delete original from upload bucket
+            if (!$this->gcsService->deleteObject($this->uploadBucket, $objectName)) {
+                error_log(sprintf('Failed to delete %s from upload bucket', $objectName));
+                // Don't fail - file is already in public bucket
+            }
+
+            // Generate public URL
             $publicUrl = sprintf('https://storage.googleapis.com/%s/%s', $this->publicBucket, $objectName);
 
             // Mark as completed

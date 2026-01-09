@@ -226,6 +226,7 @@ function defineRoutes(\Slim\App $app, array $services): void
             $services['validation'],
             $services['conversion'],
             $services['gcs'],
+            $services['uploadBucket'],
             $services['publicBucket']
         );
 
