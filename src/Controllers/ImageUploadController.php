@@ -59,7 +59,9 @@ class ImageUploadController
             $data = !empty($body) ? json_decode($body, true) : [];
             
             // Validate content type (allow only images)
-            $contentType = $data['contentType'] ?? 'image/jpeg';
+            // Accept either top-level 'contentType' or nested 'imageMetadata.mimeType'
+            $contentType = $data['contentType']
+                ?? ($data['imageMetadata']['mimeType'] ?? 'image/jpeg');
             if (!$this->isValidImageContentType($contentType)) {
                 return $this->errorResponse($response, 400, 'Invalid content type. Only image/* is allowed.');
             }
