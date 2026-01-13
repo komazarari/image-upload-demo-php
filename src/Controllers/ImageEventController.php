@@ -68,6 +68,7 @@ class ImageEventController
         try {
             // Parse request body
             $body = json_decode((string)$request->getBody(), true);
+            error_log('Received Pub/Sub event: ' . json_encode($body));
 
             if (!isset($body['message']['data'])) {
                 error_log('Missing message data in Pub/Sub event');
