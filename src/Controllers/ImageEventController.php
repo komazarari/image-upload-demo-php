@@ -67,8 +67,9 @@ class ImageEventController
     {
         try {
             // Parse request body
-            $body = json_decode((string)$request->getBody(), true);
-            error_log('Received Pub/Sub event: ' . json_encode($body));
+            $rawBody = (string)$request->getBody();
+            error_log('Received Pub/Sub event: ' . $rawBody);
+            $body = json_decode($rawBody, true);
 
             if (!isset($body['message']['data'])) {
                 error_log('Missing message data in Pub/Sub event');
@@ -76,8 +77,10 @@ class ImageEventController
             }
 
             // Decode base64 message data
+            $rawData = base64_decode($body['message']['data']);
+            error_log('Decoded Pub/Sub message data: ' . $rawData);
             $messageData = json_decode(
-                base64_decode($body['message']['data']),
+                $rawData,
                 true
             );
 
